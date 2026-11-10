@@ -1,0 +1,10 @@
+{
+  "name": "founders-playbook",
+  "private": true,
+  "description": "Founders' playbook, agreement generator and Q&A chat for Estonian OÜ founders (TECH x LEGAL).",
+  "scripts": {
+    "build": "python3 src/build_site.py",
+    "docx": "node tools/md-word.js docs/founders-agreement-template.docx docs/founders-agreement-template.md && node tools/md-word.js docs/founders-questionnaire.docx docs/founders-questionnaire.md"
+  },
+  "devDependencies": { "docx": "9.13.0" }
+}

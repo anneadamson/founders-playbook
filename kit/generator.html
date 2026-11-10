@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Founders' Agreement Generator</title>
+<meta name="description" content="Answer 28 questions and read your plain-English founders' agreement draft.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="site">
+<header class="top"><div class="wrap top-in">
+<a class="brand" href="index.html"><svg viewBox="0 0 120 120" width="28" height="28" aria-hidden="true"><rect width="120" height="120" rx="1.4" fill="#FA5F20"/><g fill="#fff"><polygon points="13,13 42.3,13 107,105.5 107,107 77.7,107 13,14.5"/><polygon points="63.6,13 106,13 84.8,43"/><polygon points="14,107 56.4,107 35.2,77"/></g></svg><span>TECH <i>x</i> LEGAL <b>Playbook</b></span></a>
+<nav class="nav" aria-label="Main"><a href="index.html#why">Reasons</a><a href="index.html#decisions">Decisions</a><a href="index.html#vesting">Vesting</a><a href="index.html#docs">Models</a><a href="index.html#law">Law</a></nav>
+<a class="btn btn-sm" href="generator.html">Build your draft</a>
+</div></header>
+<main>
+
+<section class="hero hero-s"><div class="wrap">
+<p class="eyebrow"><a href="index.html">Playbook</a> / Generator</p>
+<h1>Answer the questions. Read your draft.</h1>
+<p class="lede">The draft on the right changes as you answer. Nothing leaves your browser. Copy the text into Word when you are happy with it.</p>
+</div></section>
+<section class="gen"><div class="wrap gen-in">
+<form id="form" class="gen-form" onsubmit="return false" autocomplete="off"></form>
+<div class="gen-out">
+<div class="tabs" role="tablist" aria-label="Draft or questions"><button type="button" class="tab on" role="tab" id="tab-draft" aria-selected="true" aria-controls="pane-draft">Your draft</button><button type="button" class="tab" role="tab" id="tab-ask" aria-selected="false" aria-controls="pane-ask">Ask about your agreement</button></div>
+<div id="pane-draft" role="tabpanel" aria-labelledby="tab-draft">
+<div class="gen-bar"><button type="button" class="btn btn-sm" id="copy">Copy the draft</button><button type="button" class="btn btn-ghost btn-sm" id="reset">Start over</button><span id="status" class="fine" role="status"></span></div>
+<div id="warn"></div>
+<article id="doc" class="doc" aria-live="polite"></article>
+</div>
+<div id="pane-ask" role="tabpanel" aria-labelledby="tab-ask" hidden>
+<p class="ask-intro">Ask about <b>your</b> draft, using the answers you gave on the left. For example: <i>I am leaving the company. What is the process and what must I think about?</i></p>
+<div id="chat" class="chat"></div>
+</div>
+</div>
+</div></section>
+<script src="founders-kit.js"></script>
+<script src="founders-chat.js"></script>
+<script>
+(function(){
+var K=window.FoundersKit, ans=K.defaults(), form=document.getElementById('form'), doc=document.getElementById('doc'), warn=document.getElementById('warn');
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function save(){try{localStorage.setItem('founders-kit-v1',JSON.stringify(ans));}catch(e){}}
+function load(){try{var s=localStorage.getItem('founders-kit-v1');if(s){var o=JSON.parse(s);for(var k in o)ans[k]=o[k];}}catch(e){}}
+load();
+function foundersHtml(){
+  var h='<div class="frows">';
+  ans.founders.forEach(function(f,i){
+    h+='<div class="frow"><label class="sr" for="fn'+i+'">Name</label><input id="fn'+i+'" data-f="'+i+'" data-k="name" placeholder="Name" value="'+esc(f.name)+'">'+
+    '<label class="sr" for="fp'+i+'">Share %</label><input id="fp'+i+'" data-f="'+i+'" data-k="pct" inputmode="decimal" placeholder="%" value="'+esc(f.pct)+'">'+
+    '<label class="sr" for="fr'+i+'">Main job</label><input id="fr'+i+'" data-f="'+i+'" data-k="role" placeholder="Main job" value="'+esc(f.role)+'">'+
+    (ans.founders.length>2?'<button type="button" class="x" data-del="'+i+'" aria-label="Remove founder '+(i+1)+'">&times;</button>':'<span></span>')+'</div>';
+  });
+  h+='</div>'+(ans.founders.length<5?'<button type="button" class="btn btn-ghost btn-sm" id="addf">Add a founder</button>':'');
+  return h;
+}
+function qHtml(q){
+  var id='q_'+q.id, h='<div class="q" data-q="'+q.id+'"><label class="ql" for="'+id+'">'+esc(q.label)+'</label>';
+  if(q.type==='founders') h+=foundersHtml();
+  else if(q.type==='choice'){h+='<div class="opts" role="radiogroup" aria-labelledby="'+id+'l">';
+    q.opts.forEach(function(o,i){var oid=id+'_'+i;h+='<label class="opt" for="'+oid+'"><input type="radio" name="'+id+'" id="'+oid+'" value="'+esc(o[0])+'"'+(String(ans[q.id])===o[0]?' checked':'')+'><span>'+esc(o[1])+(o[0]===String(q.def)?' <em class="star">suggested</em>':'')+'</span></label>';});h+='</div>';}
+  else if(q.type==='yesno') h+='<div class="opts"><label class="opt" for="'+id+'_y"><input type="radio" name="'+id+'" id="'+id+'_y" value="yes"'+(ans[q.id]==='yes'?' checked':'')+'><span>Yes</span></label><label class="opt" for="'+id+'_n"><input type="radio" name="'+id+'" id="'+id+'_n" value="no"'+(ans[q.id]!=='yes'?' checked':'')+'><span>No</span></label></div>';
+  else if(q.type==='longtext') h+='<textarea id="'+id+'" rows="3" placeholder="'+esc(q.ph||'')+'">'+esc(ans[q.id]||'')+'</textarea>';
+  else h+='<input id="'+id+'" type="'+(q.type==='number'?'number':'text')+'"'+(q.type==='number'?' min="0" max="100" step="1"':'')+' placeholder="'+esc(q.ph||'')+'" value="'+esc(ans[q.id]||'')+'">';
+  h+='<details class="why"><summary>Why does it matter?</summary><p>'+esc(q.why)+'</p></details></div>';
+  return h;
+}
+function renderForm(keepFocus){
+  var h='';
+  K.GROUPS.forEach(function(g,gi){
+    h+='<fieldset class="grp"><legend>'+(gi+1)+'. '+esc(g[1])+'</legend>';
+    K.QUESTIONS.filter(function(q){return q.g===g[0];}).forEach(function(q){ if(K.visible(q,ans)) h+=qHtml(q); });
+    h+='</fieldset>';
+  });
+  form.innerHTML=h;
+}
+function renderDoc(){
+  var blocks=K.build(ans), h='', i=0, inList=false;
+  blocks.forEach(function(b){
+    if(b.t!=='li'&&inList){h+='</ul>';inList=false;}
+    if(b.t==='title') h+='<h2 class="dt">'+esc(b.text)+'</h2>';
+    else if(b.t==='sub') h+='<p class="ds">'+esc(b.text)+'</p>';
+    else if(b.t==='h2') h+='<h3>'+(b.num?b.num+'. ':'')+esc(b.text)+'</h3>';
+    else if(b.t==='plain') h+='<p class="pw"><b>In plain words:</b> '+esc(b.text)+'</p>';
+    else if(b.t==='p') h+='<p><b>'+b.num+'</b> '+esc(b.text)+'</p>';
+    else if(b.t==='li'){if(!inList){h+='<ul>';inList=true;}h+='<li>'+esc(b.text)+'</li>';}
+    else if(b.t==='note') h+='<p class="nt"><b>Note.</b> '+esc(b.text)+'</p>';
+    else if(b.t==='table'){h+='<div class="tw"><table><thead><tr>'+b.head.map(function(x){return '<th>'+esc(x)+'</th>';}).join('')+'</tr></thead><tbody>'+b.rows.map(function(r){return '<tr>'+r.map(function(x){return '<td>'+esc(x)+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div>';}
+  });
+  if(inList) h+='</ul>';
+  doc.innerHTML=h;
+  var tot=0,any=false;ans.founders.forEach(function(f){var n=parseFloat(f.pct);if(!isNaN(n)){tot+=n;any=true;}});
+  warn.innerHTML=(any&&Math.abs(tot-100)>0.01)?'<p class="warnbox">The founders\' shares add up to '+(Math.round(tot*10)/10)+'%, not 100%. Check the numbers.</p>':'';
+}
+function refresh(){save();renderDoc();}
+form.addEventListener('input',function(e){
+  var t=e.target;
+  if(t.dataset&&t.dataset.f!==undefined){ans.founders[+t.dataset.f][t.dataset.k]=t.value;refresh();return;}
+  var q=t.closest('[data-q]'); if(!q) return; var id=q.getAttribute('data-q');
+  if(t.type==='radio'){ans[id]=t.value; var qd=K.QUESTIONS.filter(function(x){return x.id===id;})[0];
+     var dep=K.QUESTIONS.some(function(x){return (x.showIf&&x.showIf[id])||(x.hideIf&&x.hideIf[id]);});
+     if(dep){renderForm();}}
+  else ans[id]=t.value;
+  refresh();
+});
+form.addEventListener('click',function(e){
+  var t=e.target;
+  if(t.id==='addf'){ans.founders.push({name:'',pct:'',role:''});renderForm();refresh();}
+  if(t.dataset&&t.dataset.del!==undefined){ans.founders.splice(+t.dataset.del,1);renderForm();refresh();}
+});
+document.getElementById('reset').addEventListener('click',function(){ans=K.defaults();try{localStorage.removeItem('founders-kit-v1');}catch(e){}renderForm();renderDoc();document.getElementById('status').textContent='Cleared.';});
+document.getElementById('copy').addEventListener('click',function(){
+  var txt=K.toMarkdown(K.build(ans)).replace(/\*\*/g,'').replace(/^> /gm,'').replace(/^#+ /gm,'');
+  var st=document.getElementById('status');
+  function done(){st.textContent='Copied. Paste it into Word.';}
+  function sel(){var r=document.createRange();r.selectNodeContents(doc);var s=getSelection();s.removeAllRanges();s.addRange(r);st.textContent='Selected. Press Ctrl+C or Cmd+C to copy.';}
+  try{navigator.clipboard.writeText(txt).then(done,sel);}catch(x){sel();}
+});
+function tab(which){
+  var d=which==='draft';
+  document.getElementById('pane-draft').hidden=!d; document.getElementById('pane-ask').hidden=d;
+  [['tab-draft',d],['tab-ask',!d]].forEach(function(t){var b=document.getElementById(t[0]);b.classList.toggle('on',t[1]);b.setAttribute('aria-selected',t[1]?'true':'false');});
+}
+document.getElementById('tab-draft').addEventListener('click',function(){tab('draft');});
+document.getElementById('tab-ask').addEventListener('click',function(){tab('ask');});
+renderForm();renderDoc();
+if(window.FoundersChat) window.FoundersChat.mount({root:document.getElementById('chat'),getAnswers:function(){return ans;}});
+})();
+</script>
+</main>
+<footer class="foot"><div class="wrap">
+<p>TECH x LEGAL Advokaadibüroo OÜ · Playbook, November 2026. Based on the Startup Estonia and EstVCA model documents (September 2026 edition) and Estonian law as published in the Riigi Teataja.</p>
+<p class="fine">This playbook and the draft agreement are general information. They are not legal advice and are not ready to sign. Have a lawyer check your agreement and your articles of association before you sign.</p>
+</div></footer>
+</div>
+</body>
+</html>
